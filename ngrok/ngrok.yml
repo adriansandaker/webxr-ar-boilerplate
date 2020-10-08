@@ -1,0 +1,5 @@
+# TODO: Finish setup for both server and websockets
+tunnels:
+  webxr-dev-server:
+    proto: http
+    addr: 8080
