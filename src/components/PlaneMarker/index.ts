@@ -4,7 +4,10 @@ import { Color3 } from "@babylonjs/core/Maths/math.color";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { Scene } from "@babylonjs/core/scene";
 
-export const createXrPlaneMarker = (scene: Scene) => {
+/*
+ *  Creates a simple circular marker mesh used to show scanned planes.
+ */
+export const createPlaneMarker = (scene: Scene) => {
     const xrPlaneMarker = MeshBuilder.CreateDisc("xrPlaneMarker", { radius: 0.07, tessellation: 16 }, scene);
     xrPlaneMarker.isVisible = false;
     xrPlaneMarker.rotationQuaternion = new Quaternion();

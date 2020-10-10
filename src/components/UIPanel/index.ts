@@ -7,7 +7,11 @@ import { Scene } from "@babylonjs/core/scene";
 import { IWebXRAnchor } from "@babylonjs/core/XR/features/WebXRAnchorSystem";
 import { WebXRDefaultExperience } from '@babylonjs/core/XR/webXRDefaultExperience';
 
-export const createXrUI = async (
+/*
+ *  Create a simple UI in AR with buttons to exit AR 
+ *  and clear all anchors.
+ */
+export const create3DGUI = async (
     scene: Scene,
     xrExperience: WebXRDefaultExperience,
     anchorList: IWebXRAnchor[]
@@ -17,7 +21,7 @@ export const createXrUI = async (
     const panel = new StackPanel3D();
     guiManager.addControl(panel);
 
-    // Position the panel in front of the camera.
+    // Position the UI panel in front of the camera.
     panel.position = new Vector3(0, 0, 5);
 
     const clearButton = new Button3D("clearButton");
@@ -39,7 +43,7 @@ export const createXrUI = async (
     panel.addControl(clearButton);
     panel.addControl(exitArButton);
 
-
+    // Make buttons slightly transparent.
     if (clearButton.mesh && clearButton.mesh.material) {
         clearButton.mesh.material.alpha = 0.9;
     }
@@ -47,6 +51,7 @@ export const createXrUI = async (
         exitArButton.mesh.material.alpha = 0.9;
     }
 
+    // Click listener for clear button.
     clearButton.onPointerClickObservable.add(() => {
         if (anchorList.length) {
             anchorList.forEach((anchor: IWebXRAnchor) => {
@@ -58,6 +63,7 @@ export const createXrUI = async (
         }
     });
 
+    // Click listener for exit button.
     exitArButton.onPointerClickObservable.add(async () => {
         await xrExperience.baseExperience.exitXRAsync();
     });

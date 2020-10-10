@@ -6,38 +6,33 @@ import { Engine } from "@babylonjs/core/Engines/engine";
 import { Scene } from "@babylonjs/core/scene";
 import { createScene } from "./scene";
 
-const appRoot: HTMLElement | null = document.getElementById('app-root');
+const initializeXrApp = async () => {
+  
+  let xrCanvas: HTMLCanvasElement = document.createElement('canvas');;
+  const appRoot: HTMLElement | null = document.getElementById('app-root');
 
-let engine: Engine;
-let scene: Scene;
-let xrCanvas: HTMLCanvasElement;
-
-// Create canvas and setup BabylonJS scene.
-const initializeXr = async () => {
-
-  if (!xrCanvas && appRoot) {
-    xrCanvas = document.createElement('canvas');
+  if (appRoot) {
     appRoot.appendChild(xrCanvas);
   }
 
-  engine = new Engine(xrCanvas, true);
+  const engine: Engine = new Engine(xrCanvas, true);
 
-  scene = await createScene(engine, xrCanvas);
+  const scene: Scene = await createScene(engine, xrCanvas);
 
   engine.runRenderLoop(function () {
     scene.render();
   });
 }
 
-async function init() {
+async function start() {
   const isImmersiveArSupported = await xrUtils.browserHasImmersiveArCompatibility();
 
   if (isImmersiveArSupported) {
-    initializeXr();
+    initializeXrApp();
   } else {
     xrUtils.displayUnsupportedBrowserMessage();
   }
 
 };
 
-init();
+start();

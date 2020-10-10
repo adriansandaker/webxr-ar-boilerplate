@@ -1,19 +1,22 @@
 {
   "name": "webxr-ar-boilerplate",
   "version": "1.0.0",
-  "description": "AR with WebXR and BabylonJS.",
+  "description": "Boilerplate for AR apps with WebXR and BabylonJS.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "webpack-dev-server --mode development --config webpack.config.js",
     "start:live": "concurrently \"yarn start\" \"node ./ngrok/ngrok-helper.js\"",
     "build": "webpack -p",
-    "esbuild": "esbuild --bundle ./src/index.js --outfile=./dist/bundle.js --minify --sourcemap",
     "stats": "webpack --profile --json > stats.json",
     "bundle-analyzer": "webpack-bundle-analyzer stats.json",
     "analyze": "npm run stats && npm run bundle-analyzer"
   },
-  "author": "adriansandaker",
+  "author": "adriansandaker <adrian.sandaker@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/adriansandaker/webxr-ar-boilerplate.git"
+  },
   "license": "ISC",
   "devDependencies": {
     "@babel/core": "^7.10.4",

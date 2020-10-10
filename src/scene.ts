@@ -8,25 +8,26 @@ import { WebXRHitTest, IWebXRHitResult } from "@babylonjs/core/XR/features/WebXR
 import { WebXRState } from "@babylonjs/core/XR/webXRTypes";
 import { WebXRDefaultExperience } from '@babylonjs/core/XR/webXRDefaultExperience';
 import { TransformNode } from '@babylonjs/core/Meshes/transformNode';
-import { createXrPlaneMarker } from "./components/xrPlaneMarker";
-import { createXrUI } from "./components/xrUI";
 import { Engine } from "@babylonjs/core/Engines/engine";
 import { Scene } from "@babylonjs/core/scene";
 import { v4 as UUID } from 'uuid';
-
-const anchors: IWebXRAnchor[] = [];
+import { createPlaneMarker } from "./components/PlaneMarker";
+import { create3DGUI } from "./components/UIPanel";
 
 export const createScene = async (engine: Engine, xrCanvas: HTMLCanvasElement) => {
+  const anchors: IWebXRAnchor[] = [];
+
   const scene = new Scene(engine);
 
+  const model = await SceneLoader.LoadAssetContainerAsync("./assets/models/", "crate.glb", scene);
+  
+  const light = new HemisphericLight("light1", new Vector3(0, 1, 0), scene);
+  
   const camera = new FreeCamera("camera1", new Vector3(0, 5, -10), scene);
   camera.setTarget(Vector3.Zero());
   camera.attachControl(xrCanvas, true);
 
-  const light = new HemisphericLight("light1", new Vector3(0, 1, 0), scene);
 
-  // Reference space types described here:
-  // https://developer.mozilla.org/en-US/docs/Web/API/WebXR_Device_API/Geometry
   const xrExperience: WebXRDefaultExperience =
     await scene.createDefaultXRExperienceAsync({
       uiOptions: {
@@ -40,14 +41,20 @@ export const createScene = async (engine: Engine, xrCanvas: HTMLCanvasElement) =
   const xrHitTest = xrFeatureManager.enableFeature(WebXRHitTest.Name, 'latest') as WebXRHitTest;
   const xrAnchorSystem = xrFeatureManager.enableFeature(WebXRAnchorSystem.Name, 'latest') as WebXRAnchorSystem;
 
-  const xrPlaneMarker = createXrPlaneMarker(scene);
+  const xrPlaneMarker = createPlaneMarker(scene);
 
-  const model = await SceneLoader.LoadAssetContainerAsync("./assets/models/", "crate.glb", scene);
   const modelMesh = model.meshes[0];
   modelMesh.rotationQuaternion = new Quaternion();
 
-  // Keep the latest hit test result here.
+  // Store the latest hit test result here.
   let xrHitTestResult: IWebXRHitResult | undefined;
+
+   // Listener for touch input events from canvas.
+  scene.onPointerObservable.add(async (pointerEvent) => {
+    if (xrAnchorSystem && xrHitTestResult && xrExperience.baseExperience.state === WebXRState.IN_XR) {
+      const anchor = xrAnchorSystem.addAnchorPointUsingHitTestResultAsync(xrHitTestResult);
+    }
+  }, PointerEventTypes.POINTERDOWN);
 
   // Called on every hit test.
   xrHitTest.onHitTestResultObservable.add(async results => {
@@ -84,15 +91,8 @@ export const createScene = async (engine: Engine, xrCanvas: HTMLCanvasElement) =
     })
   }
 
-  // Listener for touch input events from canvas.
-  scene.onPointerObservable.add(async (pointerEvent) => {
-    if (xrAnchorSystem && xrHitTestResult && xrExperience.baseExperience.state === WebXRState.IN_XR) {
-      const anchor = xrAnchorSystem.addAnchorPointUsingHitTestResultAsync(xrHitTestResult);
-    }
-  }, PointerEventTypes.POINTERDOWN);
-
   // Setup XR user interface.
-  createXrUI(scene, xrExperience, anchors);
+  create3DGUI(scene, xrExperience, anchors);
 
   return scene;
 };
