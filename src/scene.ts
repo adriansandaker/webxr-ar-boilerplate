@@ -14,82 +14,85 @@ import { Engine } from "@babylonjs/core/Engines/engine";
 import { Scene } from "@babylonjs/core/scene";
 import { v4 as UUID } from 'uuid';
 
-let xrExperience: WebXRDefaultExperience;
-
-const anchorList: IWebXRAnchor[] = [];
+const anchors: IWebXRAnchor[] = [];
 
 export const createScene = async (engine: Engine, xrCanvas: HTMLCanvasElement) => {
-    const scene = new Scene(engine);
+  const scene = new Scene(engine);
 
-    const camera = new FreeCamera("camera1", new Vector3(0, 5, -10), scene);
-    camera.setTarget(Vector3.Zero());
-    camera.attachControl(xrCanvas, true);
+  const camera = new FreeCamera("camera1", new Vector3(0, 5, -10), scene);
+  camera.setTarget(Vector3.Zero());
+  camera.attachControl(xrCanvas, true);
 
-    const light = new HemisphericLight("light1", new Vector3(0, 1, 0), scene);
+  const light = new HemisphericLight("light1", new Vector3(0, 1, 0), scene);
 
-    // Reference space types described here: https://developer.mozilla.org/en-US/docs/Web/API/WebXR_Device_API/Geometry
-    xrExperience = await scene.createDefaultXRExperienceAsync({
-        uiOptions: {
-            sessionMode: 'immersive-ar',
-            referenceSpaceType: 'unbounded',
-        },
-        optionalFeatures: true,
+  // Reference space types described here:
+  // https://developer.mozilla.org/en-US/docs/Web/API/WebXR_Device_API/Geometry
+  const xrExperience: WebXRDefaultExperience =
+    await scene.createDefaultXRExperienceAsync({
+      uiOptions: {
+        sessionMode: 'immersive-ar',
+        referenceSpaceType: 'unbounded',
+      },
+      optionalFeatures: true,
     });
 
-    const xrFeatureManager = xrExperience.baseExperience.featuresManager;
-    const xrHitTest = xrFeatureManager.enableFeature(WebXRHitTest.Name, 'latest') as WebXRHitTest;
-    const xrAnchorSystem = xrFeatureManager.enableFeature(WebXRAnchorSystem.Name, 'latest') as WebXRAnchorSystem;
+  const xrFeatureManager = xrExperience.baseExperience.featuresManager;
+  const xrHitTest = xrFeatureManager.enableFeature(WebXRHitTest.Name, 'latest') as WebXRHitTest;
+  const xrAnchorSystem = xrFeatureManager.enableFeature(WebXRAnchorSystem.Name, 'latest') as WebXRAnchorSystem;
 
-    const xrPlaneMarker = createXrPlaneMarker(scene);
+  const xrPlaneMarker = createXrPlaneMarker(scene);
 
-    const model = await SceneLoader.LoadAssetContainerAsync("./assets/models/", "crate.glb", scene);
-    const modelMesh = model.meshes[0];
-    modelMesh.rotationQuaternion = new Quaternion();
+  const model = await SceneLoader.LoadAssetContainerAsync("./assets/models/", "crate.glb", scene);
+  const modelMesh = model.meshes[0];
+  modelMesh.rotationQuaternion = new Quaternion();
 
-    // Meep the latest hit test result here.
-    let xrHitTestResult: IWebXRHitResult | undefined;
+  // Keep the latest hit test result here.
+  let xrHitTestResult: IWebXRHitResult | undefined;
 
-    xrHitTest.onHitTestResultObservable.add(async results => {
-        if (results.length) {
-            xrPlaneMarker.isVisible = true;
-            xrHitTestResult = results[0];
-            if (xrPlaneMarker.rotationQuaternion) {
-                xrHitTestResult.transformationMatrix.decompose(undefined, xrPlaneMarker.rotationQuaternion, xrPlaneMarker.position);
-            }
-        } else {
-            xrPlaneMarker.isVisible = false;
-            xrHitTestResult = undefined;
-        }
-    });
+  // Called on every hit test.
+  xrHitTest.onHitTestResultObservable.add(async results => {
+    if (results.length) {
+      xrPlaneMarker.isVisible = true;
+      xrHitTestResult = results[0];
 
-    if (xrAnchorSystem) {
-        xrAnchorSystem.onAnchorAddedObservable.add(anchor => {
-            if (modelMesh) {
-                const foxId = UUID();
-                modelMesh.isVisible = true;
-                anchor.attachedNode = modelMesh.clone(foxId, null, false) as TransformNode;
-                modelMesh.isVisible = false;
-                anchorList.push(anchor);
-            }
-        });
-
-        xrAnchorSystem.onAnchorRemovedObservable.add(anchor => {
-            if (anchor && anchor.attachedNode) {
-                anchor.attachedNode.dispose();
-            }
-        })
+      // Update plane marker location to reflect latest hit test.
+      if (xrPlaneMarker.rotationQuaternion) {
+        xrHitTestResult.transformationMatrix.decompose(undefined, xrPlaneMarker.rotationQuaternion, xrPlaneMarker.position);
+      }
+    } else {
+      xrPlaneMarker.isVisible = false;
+      xrHitTestResult = undefined;
     }
+  });
 
-    scene.onPointerObservable.add(async (pointerEvent) => {
-        if (xrAnchorSystem && xrHitTestResult && xrExperience.baseExperience.state === WebXRState.IN_XR) {
-            const anchor = xrAnchorSystem.addAnchorPointUsingHitTestResultAsync(xrHitTestResult);
-        }
-    }, PointerEventTypes.POINTERDOWN);
+  if (xrAnchorSystem) {
+    // Called when a new anchor is added to the scene.
+    xrAnchorSystem.onAnchorAddedObservable.add(anchor => {
+      if (modelMesh) {
+        modelMesh.isVisible = true;
+        anchor.attachedNode = modelMesh.clone(UUID(), null, false) as TransformNode;
+        modelMesh.isVisible = false;
+        anchors.push(anchor);
+      }
+    });
 
-    scene.onPointerObservable.add(async (pointerEvent) => { }, PointerEventTypes.POINTERUP);
+    // Called when an anchor is removed from the scene.
+    xrAnchorSystem.onAnchorRemovedObservable.add(anchor => {
+      if (anchor && anchor.attachedNode) {
+        anchor.attachedNode.dispose();
+      }
+    })
+  }
 
-    // Setup XR user interface.
-    createXrUI(scene, xrExperience, anchorList);
+  // Listener for touch input events from canvas.
+  scene.onPointerObservable.add(async (pointerEvent) => {
+    if (xrAnchorSystem && xrHitTestResult && xrExperience.baseExperience.state === WebXRState.IN_XR) {
+      const anchor = xrAnchorSystem.addAnchorPointUsingHitTestResultAsync(xrHitTestResult);
+    }
+  }, PointerEventTypes.POINTERDOWN);
 
-    return scene;
+  // Setup XR user interface.
+  createXrUI(scene, xrExperience, anchors);
+
+  return scene;
 };

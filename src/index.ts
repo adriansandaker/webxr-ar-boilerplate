@@ -12,6 +12,7 @@ let engine: Engine;
 let scene: Scene;
 let xrCanvas: HTMLCanvasElement;
 
+// Create canvas and setup BabylonJS scene.
 const initializeXr = async () => {
 
   if (!xrCanvas && appRoot) {
@@ -39,4 +40,4 @@ async function init() {
 
 };
 
-window.onload = () => init();
+init();
