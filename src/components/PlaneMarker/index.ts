@@ -5,7 +5,7 @@ import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { Scene } from "@babylonjs/core/scene";
 
 /*
- *  Creates a simple circular marker mesh used to show scanned planes.
+ *  Creates a simple circular marker mesh to overlay on scanned planes.
  */
 export const createPlaneMarker = (scene: Scene) => {
     const xrPlaneMarker = MeshBuilder.CreateDisc("xrPlaneMarker", { radius: 0.07, tessellation: 16 }, scene);

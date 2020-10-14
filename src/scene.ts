@@ -14,12 +14,17 @@ import { v4 as UUID } from 'uuid';
 import { createPlaneMarker } from "./components/PlaneMarker";
 import { create3DGUI } from "./components/UIPanel";
 
+/*  This is where the magic happens. The create scene function is where we set up all
+ *  the essential parts of our immersive AR experience. 
+ */
 export const createScene = async (engine: Engine, xrCanvas: HTMLCanvasElement) => {
+  // Simple array to store our anchors.
   const anchors: IWebXRAnchor[] = [];
 
   const scene = new Scene(engine);
 
-  const model = await SceneLoader.LoadAssetContainerAsync("./assets/models/", "crate.glb", scene);
+  // Load our model.
+  const model = await SceneLoader.LoadAssetContainerAsync("./assets/models/", "koala.glb", scene);
   
   const light = new HemisphericLight("light1", new Vector3(0, 1, 0), scene);
   
@@ -27,7 +32,12 @@ export const createScene = async (engine: Engine, xrCanvas: HTMLCanvasElement) =
   camera.setTarget(Vector3.Zero());
   camera.attachControl(xrCanvas, true);
 
-
+  /* Setup the base WebXR experience using a helper function from
+   * the BabylonJS library. This function initializes an XR scene,
+   * creates an XR camera, and initializes a feature manager.
+   * 
+   * https://doc.babylonjs.com/how_to/webxr_experience_helpers
+   */
   const xrExperience: WebXRDefaultExperience =
     await scene.createDefaultXRExperienceAsync({
       uiOptions: {
@@ -43,6 +53,7 @@ export const createScene = async (engine: Engine, xrCanvas: HTMLCanvasElement) =
 
   const xrPlaneMarker = createPlaneMarker(scene);
 
+  // Get the mesh from our model.
   const modelMesh = model.meshes[0];
   modelMesh.rotationQuaternion = new Quaternion();
 
@@ -56,13 +67,15 @@ export const createScene = async (engine: Engine, xrCanvas: HTMLCanvasElement) =
     }
   }, PointerEventTypes.POINTERDOWN);
 
-  // Called on every hit test.
+  /*  Called on every hit test. If a hit test is found, we show our circular marker
+   *  on the surface and store the result for later use. 
+   */
   xrHitTest.onHitTestResultObservable.add(async results => {
     if (results.length) {
       xrPlaneMarker.isVisible = true;
       xrHitTestResult = results[0];
 
-      // Update plane marker location to reflect latest hit test.
+      // Update plane marker location in AR space to reflect latest hit test.
       if (xrPlaneMarker.rotationQuaternion) {
         xrHitTestResult.transformationMatrix.decompose(undefined, xrPlaneMarker.rotationQuaternion, xrPlaneMarker.position);
       }
@@ -72,9 +85,11 @@ export const createScene = async (engine: Engine, xrCanvas: HTMLCanvasElement) =
     }
   });
 
+  // Ensure our anchor system exists before attempting to add an anchor.
   if (xrAnchorSystem) {
     // Called when a new anchor is added to the scene.
     xrAnchorSystem.onAnchorAddedObservable.add(anchor => {
+      // If our mesh has been initialized, clone the mesh and add it to the anchor.
       if (modelMesh) {
         modelMesh.isVisible = true;
         anchor.attachedNode = modelMesh.clone(UUID(), null, false) as TransformNode;
@@ -91,7 +106,7 @@ export const createScene = async (engine: Engine, xrCanvas: HTMLCanvasElement) =
     })
   }
 
-  // Setup XR user interface.
+  // Setup a simple XR user interface.
   create3DGUI(scene, xrExperience, anchors);
 
   return scene;

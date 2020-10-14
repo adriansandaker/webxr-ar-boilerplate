@@ -9,13 +9,16 @@ body {
   text-align: center;
 }
 
+/* Hide canvas by default, not needed outside immersive-ar */
 canvas {
     width: 100%;
     height: 100%;
-    display: none; /* Hide canvas, not needed outside immersive-ar */
+    display: none; 
 }
 
-/* For generated error message displayed on non-compatible browser */
+/*  For generated error message displayed if 
+ *  incompatible browser is used. 
+ */
 .ui__message-big {
     color: white;
     font-size: 2rem;
