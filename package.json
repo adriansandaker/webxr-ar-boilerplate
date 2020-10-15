@@ -31,6 +31,7 @@
     "file-loader": "^6.0.0",
     "html-webpack-plugin": "^4.3.0",
     "ngrok": "^3.3.0",
+    "prettier": "2.1.2",
     "script-loader": "^0.7.2",
     "style-loader": "^1.2.1",
     "terser-webpack-plugin": "^4.2.3",

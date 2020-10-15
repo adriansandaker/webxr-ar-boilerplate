@@ -20,14 +20,15 @@ export const createScene = async (engine: Engine, xrCanvas: HTMLCanvasElement) =
   const scene = new Scene(engine);
 
   const model = await SceneLoader.LoadAssetContainerAsync("./assets/models/", "crate.glb", scene);
-  
+
   const light = new HemisphericLight("light1", new Vector3(0, 1, 0), scene);
-  
+
   const camera = new FreeCamera("camera1", new Vector3(0, 5, -10), scene);
   camera.setTarget(Vector3.Zero());
   camera.attachControl(xrCanvas, true);
 
-
+  // Initialize the XR experience using the BabylonJS
+  // helper method.
   const xrExperience: WebXRDefaultExperience =
     await scene.createDefaultXRExperienceAsync({
       uiOptions: {
@@ -41,6 +42,7 @@ export const createScene = async (engine: Engine, xrCanvas: HTMLCanvasElement) =
   const xrHitTest = xrFeatureManager.enableFeature(WebXRHitTest.Name, 'latest') as WebXRHitTest;
   const xrAnchorSystem = xrFeatureManager.enableFeature(WebXRAnchorSystem.Name, 'latest') as WebXRAnchorSystem;
 
+  // Create the marker used to indicate scanned planes.
   const xrPlaneMarker = createPlaneMarker(scene);
 
   const modelMesh = model.meshes[0];
@@ -49,7 +51,7 @@ export const createScene = async (engine: Engine, xrCanvas: HTMLCanvasElement) =
   // Store the latest hit test result here.
   let xrHitTestResult: IWebXRHitResult | undefined;
 
-   // Listener for touch input events from canvas.
+  // Listener for touch input events from canvas.
   scene.onPointerObservable.add(async (pointerEvent) => {
     if (xrAnchorSystem && xrHitTestResult && xrExperience.baseExperience.state === WebXRState.IN_XR) {
       const anchor = xrAnchorSystem.addAnchorPointUsingHitTestResultAsync(xrHitTestResult);
@@ -72,6 +74,7 @@ export const createScene = async (engine: Engine, xrCanvas: HTMLCanvasElement) =
     }
   });
 
+  // Ensure the WebXR anchor system is setup before attempting to add anchor.
   if (xrAnchorSystem) {
     // Called when a new anchor is added to the scene.
     xrAnchorSystem.onAnchorAddedObservable.add(anchor => {
