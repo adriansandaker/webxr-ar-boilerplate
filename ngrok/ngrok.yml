@@ -1,4 +1,4 @@
-# TODO: Finish setup for both server and websockets
+# TODO: Finish this.
 tunnels:
   webxr-dev-server:
     proto: http

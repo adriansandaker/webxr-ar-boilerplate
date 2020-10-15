@@ -1,3 +1,6 @@
+/*  Helper function to automatically initialize and run an instance
+ *  of ngrok.
+ */
 const ngrok = require('ngrok');
 
 const config = {

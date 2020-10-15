@@ -9,7 +9,7 @@ import { WebXRDefaultExperience } from '@babylonjs/core/XR/webXRDefaultExperienc
 
 /*
  *  Create a simple UI in AR with buttons to exit AR 
- *  and clear all anchors.
+ *  and clear anchors.
  */
 export const create3DGUI = async (
     scene: Scene,

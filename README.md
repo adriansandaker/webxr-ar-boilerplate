@@ -15,6 +15,12 @@ To get up and running clone the repo and run the following commands to install d
 
 This will start an instance of webpack-dev-server on port 8080. To access the app on a compatible device/browser you have to serve it over HTTPS, otherwise BabylonJS will fail to setup the WebXR components properly. For development. I suggest using an [ngrok](https://ngrok.com/)-tunnel to get up an running fast. A configuration has been provided (ngrok.yml) to ease the setup and configuration time.
 
+If you are using ngrok, a helper script is available to create a new ngrok instance on start.
+To run the app and setup an ngrok tunnel, simply run: 
+
+    yarn start:live
+
+
 ### Debugging
 
 As the app is running on a mobile device, you won't be able to access the devtools directly in the mobile browser. For development and debugging, attach the device to your machine using a cable and access the url `chrome://inspect/#devices` in your desktop version of Chrome. Allow debug access when prompted on your device. You should then be able to see your device appear in the inspection window you opened earlier, where you can use the `inspect` functionality to get access to the running app instance for debugging.
@@ -25,4 +31,7 @@ Project uses the ES6 packages for BabylonJS. Correct usage is documented in the 
 
 When bumping versions, ensure you update all packages within the @babylonjs namespace to avoid version mismatches.
 
-*Grass model used in app created by [Poly by Google](https://poly.google.com/view/3tyh15Fbmsx).*
+
+### Credits
+
+Thanks to [*Poly by Google*](https://poly.google.com/view/fzCu8FM0HfB) for the Koala model.
