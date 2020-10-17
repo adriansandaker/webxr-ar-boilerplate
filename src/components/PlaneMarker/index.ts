@@ -27,5 +27,6 @@ export const createPlaneMarker = (scene: Scene) => {
   xrPlaneMarkerMaterial.alpha = 0.5;
   xrPlaneMarker.material = xrPlaneMarkerMaterial;
 
+
   return xrPlaneMarker;
 };

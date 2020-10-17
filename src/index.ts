@@ -8,7 +8,7 @@ import { createScene } from "./scene";
 
 /*  This function sets up all the parts we need to run our WebXR experience.
  *  A canvas-element is created and passed to the BabylonJS engine, before we call the
- *  createScene function from our Scene-file to set up our BabylonJS Scene.
+ *  createScene function from our "Scene.ts"-file to set up our BabylonJS Scene.
  *  Finally, we run the main render loop which will continue running until
  *  the app is terminated.
  */
@@ -22,7 +22,7 @@ const initializeXrApp = async () => {
 
   const engine: Engine = new Engine(xrCanvas, true);
 
-  const scene: Scene = await createScene(engine, xrCanvas);
+  const scene: Scene = await createScene(engine);
 
   engine.runRenderLoop(function () {
     scene.render();

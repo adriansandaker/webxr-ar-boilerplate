@@ -3,14 +3,6 @@ import { FreeCamera } from "@babylonjs/core/Cameras/freeCamera";
 import { PointerEventTypes } from "@babylonjs/core/Events/pointerEvents";
 import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
 import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight";
-import {
-  WebXRAnchorSystem,
-  IWebXRAnchor,
-} from "@babylonjs/core/XR/features/WebXRAnchorSystem";
-import {
-  WebXRHitTest,
-  IWebXRHitResult,
-} from "@babylonjs/core/XR/features/WebXRHitTest";
 import { WebXRState } from "@babylonjs/core/XR/webXRTypes";
 import { WebXRDefaultExperience } from "@babylonjs/core/XR/webXRDefaultExperience";
 import { TransformNode } from "@babylonjs/core/Meshes/transformNode";
@@ -19,14 +11,21 @@ import { Scene } from "@babylonjs/core/scene";
 import { v4 as UUID } from "uuid";
 import { createPlaneMarker } from "./components/PlaneMarker";
 import { create3DGUI } from "./components/UIPanel";
+import { displayScanEnvironmentPrompt } from "./components/ScanPrompt";
+import {
+  WebXRAnchorSystem,
+  IWebXRAnchor,
+} from "@babylonjs/core/XR/features/WebXRAnchorSystem";
+import {
+  WebXRHitTest,
+  IWebXRHitResult,
+} from "@babylonjs/core/XR/features/WebXRHitTest";
+import { GlowLayer } from "@babylonjs/core/Layers/glowLayer";
 
 /*  This is where the magic happens. The create scene function is where we set up all
  *  the essential parts of our immersive AR experience.
  */
-export const createScene = async (
-  engine: Engine,
-  xrCanvas: HTMLCanvasElement
-) => {
+export const createScene = async (engine: Engine) => {
   // Simple array to store our anchors.
   const anchors: IWebXRAnchor[] = [];
 
@@ -43,7 +42,7 @@ export const createScene = async (
 
   const camera = new FreeCamera("camera1", new Vector3(0, 5, -10), scene);
   camera.setTarget(Vector3.Zero());
-  camera.attachControl(xrCanvas, true);
+  camera.attachControl(true);
 
   /* Setup the base WebXR experience using a helper function from
    * the BabylonJS library. This function initializes an XR scene,
@@ -81,6 +80,10 @@ export const createScene = async (
   // Store the latest hit test result here.
   let xrHitTestResult: IWebXRHitResult | undefined;
 
+  // Display a message in the UI prompting the user to scan the environment.
+  // To clear, call the .dispose() method.
+  const scanPrompt = await displayScanEnvironmentPrompt();
+
   // Listener for touch input events from canvas.
   scene.onPointerObservable.add(async (pointerEvent) => {
     if (
@@ -88,7 +91,7 @@ export const createScene = async (
       xrHitTestResult &&
       xrExperience.baseExperience.state === WebXRState.IN_XR
     ) {
-      const anchor = xrAnchorSystem.addAnchorPointUsingHitTestResultAsync(
+      xrAnchorSystem.addAnchorPointUsingHitTestResultAsync(
         xrHitTestResult
       );
     }
@@ -101,6 +104,11 @@ export const createScene = async (
     if (results.length) {
       xrPlaneMarker.isVisible = true;
       xrHitTestResult = results[0];
+      
+      // Remove environment scan prompt.
+      if (scanPrompt) {
+        scanPrompt.dispose();
+      };
 
       // Update plane marker location in AR space to reflect latest hit test.
       if (xrPlaneMarker.rotationQuaternion) {
@@ -144,5 +152,6 @@ export const createScene = async (
   // Setup a simple XR user interface.
   create3DGUI(scene, xrExperience, anchors);
 
+  
   return scene;
 };
