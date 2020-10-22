@@ -20,7 +20,6 @@ import {
   WebXRHitTest,
   IWebXRHitResult,
 } from "@babylonjs/core/XR/features/WebXRHitTest";
-import { GlowLayer } from "@babylonjs/core/Layers/glowLayer";
 
 /*  This is where the magic happens. The create scene function is where we set up all
  *  the essential parts of our immersive AR experience.
@@ -104,7 +103,7 @@ export const createScene = async (engine: Engine) => {
     if (results.length) {
       xrPlaneMarker.isVisible = true;
       xrHitTestResult = results[0];
-      
+
       // Remove environment scan prompt.
       if (scanPrompt) {
         scanPrompt.dispose();
@@ -152,6 +151,6 @@ export const createScene = async (engine: Engine) => {
   // Setup a simple XR user interface.
   create3DGUI(scene, xrExperience, anchors);
 
-  
+
   return scene;
 };
