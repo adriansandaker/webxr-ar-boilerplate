@@ -90,7 +90,6 @@ module.exports = {
   devServer: {
     contentBase: path.join(__dirname, 'dist'),
     open: true,
-    host: "0.0.0.0",
     watchOptions: {
       poll: true,
       ignored: ['assets/**', 'node_modules/**']
